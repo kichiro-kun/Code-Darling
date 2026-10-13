@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Code: Darling{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Иконка вкладки -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0
+0 100 100'><text y='.9em' font-size='90'>🦋</text></svg>">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="container header__inner">
+            <a href="/" class="logo">
+                <span class="logo__icon">🦋</span>
+                <span class="logo__text">Code: Darling</span>
+            </a>
+            <form class="search" action="/search" method="get">
+                <input type="text" name="q" placeholder="Ищи аниме…" value="{{ query | default('') }}">
+                <button type="submit" aria-label="Поиск">⌕</button>
+            </form>
+            <nav class="nav">
+                <a href="/" class="nav__link active">Главная</a>
+                <a href="#" class="nav__link">Подборки</a>
+                <a href="#" class="nav__link">Расписание</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 <span>Code: Darling</span> · Сделано на FastAPI · Zero Two Edition 🦋</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+
+</html>

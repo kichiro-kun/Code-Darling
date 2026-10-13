@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Главная — Code: Darling{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="container">
+        <h1 class="hero__title">Darling, смотри аниме.</h1>
+        <p class="hero__subtitle">
+            Тысячи тайтлов. Обновляется еженедельно.
+            Без регистрации, без рекламы. Как у нас во Франксе.
+        </p>
+    </div>
+</section>
+
+<section class="catalog">
+    <div class="container">
+        <div class="catalog__header">
+            <h2 class="catalog__title">
+                {{ "Найдено: " ~ animes | length if query else "Каталог" }}
+            </h2>
+            <div class="filters">
+                <select class="filter">
+                    <option value="">Жанр</option>
+                    <option value="боевик">Боевик</option>
+                    <option value="фэнтези">Фэнтези</option>
+                    <option value="драма">Драма</option>
+                    <option value="комедия">Комедия</option>
+                    <option value="приключения">Приключения</option>
+                </select>
+                <select class="filter">
+                    <option value="">Год</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2020">2020</option>
+                    <option value="1999">1999</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid">
+            {% for anime in animes %}
+            <article class="card">
+                <div class="card__poster">
+                    <img src="{{ anime.poster_url }}" alt="{{ anime.title }}" loading="lazy" width="300" height="450">
+                    <span class="card__badge card__badge--{{ anime.status }}">
+                        {{ {'released': 'Вышло', 'airing': 'В эфире', 'upcoming': 'Скоро'}[anime.status] }}
+                    </span>
+                    <span class="card__rating">★ {{ "%.1f" | format(anime.rating) }}</span>
+                </div>
+                <div class="card__body">
+                    <h3 class="card__title">{{ anime.title }}</h3>
+                    <p class="card__meta">{{ anime.year }} · {{ anime.episodes_count }} эп.</p>
+                    <p class="card__desc">{{ anime.description[:120] }}…</p>
+                    <div class="card__genres">
+                        {% for g in anime.genres[:3] %}<span class="tag">{{ g }}</span>{% endfor
+                        %}
+                    </div>
+                    <a href="/anime/{{ anime.id }}" class="btn btn--primary">▶ Смотреть</a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
