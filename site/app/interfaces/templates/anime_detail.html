@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ anime.title }} — Code: Darling{% endblock %}
+
+{% block content %}
+
+<section class="detail">
+    <div class="container">
+        <a href="/" class="detail__back">← Назад в каталог</a>
+
+        <div class="detail__layout">
+            <div class="detail__poster">
+                <img src="{{ anime.poster_url }}" alt="{{ anime.title }}" width="300" height="450">
+            </div>
+            <div class="detail__info">
+                <span class="detail__badge detail__badge--{{ anime.status }}">
+                    {{ {'released': 'Вышло', 'airing': 'В эфире', 'upcoming': 'Скоро'}[anime.status] }}
+                </span>
+                <h1 class="detail__title">{{ anime.title }}</h1>
+                <p class="detail__title-en">{{ anime.title_en }}</p>
+
+                <div class="detail__meta">
+                    <span>📅 {{ anime.year }}</span>
+                    <span>🎬 {{ anime.episodes_count }} эп.</span>
+                    <span>★ {{ "%.1f" | format(anime.rating) }}</span>
+                </div>
+
+                <div class="detail__genres">
+                    {% for g in anime.genres %}
+                        <span class="tag">{{ g }}</span>
+                    {% endfor %}
+                </div>
+
+                <p class="detail__desc">{{ anime.description }}</p>
+
+                <a href="#" class="btn btn--primary btn--large">▶ Смотреть сейчас</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -17,38 +17,71 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from settings import settings
-from app.routers.main import router as main_router
-from fastapi import Request
-from fastapi.responses import JSONResponse
 
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s - %(message)s"
+# ── Clean Architecture wiring ───────────────────────────────────────
+from app.domain.ports.anime_repository import AnimeRepository
+from app.application.use_cases import (
+    GetAnimeByIdUseCase,
+    GetAllAnimeUseCase,
+    SearchAnimeUseCase,
+    GetAnimeByGenreUseCase,
 )
-
-app = FastAPI(
-    title=settings.APP_NAME,
-    description=settings.APP_DESCRIPTION,
-)
+from app.infrastructure.adapters.anime_repository_in_memory import InMemoryAnimeRepository
 
 
-@app.get(path="/health")
-async def health() -> Dict[str, str]:
-    return {"status": "ok"}
+class UseCaseContainer:
+    """Simple DI container — holds all use-case instances."""
+
+    def __init__(self, repo: AnimeRepository) -> None:
+        self.get_by_id = GetAnimeByIdUseCase(repo)
+        self.get_all = GetAllAnimeUseCase(repo)
+        self.search = SearchAnimeUseCase(repo)
+        self.by_genre = GetAnimeByGenreUseCase(repo)
 
 
-@app.exception_handler(exc_class_or_status_code=Exception)
-async def unhandled_exception_handler(request, exc) -> JSONResponse:
-    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+def create_app() -> FastAPI:
+    """Application factory — builds and wires the FastAPI app."""
+    application = FastAPI(
+        title=settings.APP_TITLE,
+        description=settings.APP_DESCRIPTION,
+        version=settings.APP_VERSION,
+        docs_url=settings.docs_url,
+        redoc_url=settings.redoc_url,
+        openapi_url=settings.openapi_url,
+        debug=settings.IS_DEV,
+    )
+
+    # ── DI: concrete adapter → use cases → app state ────────────────
+    repository = InMemoryAnimeRepository()
+    application.state.use_cases = UseCaseContainer(repository)
+
+    # ── Static & templates ──────────────────────────────────────────
+    application.mount(
+        path="/static",
+        app=StaticFiles(directory=settings.STATIC_DIR),
+        name="static",
+    )
+    application.state.templates = Jinja2Templates(directory=settings.TEMPLATE_DIR)
+
+    # ── Routes ──────────────────────────────────────────────────────
+    from app.interfaces.api.router import router as main_router
+    application.include_router(router=main_router)
+
+    # ── Health ──────────────────────────────────────────────────────
+    @application.get("/health")
+    async def health() -> Dict[str, str]:
+        return {"status": "ok"}
+
+    # ── Global exception handler ────────────────────────────────────
+    @application.exception_handler(Exception)
+    async def unhandled_exception_handler(request, exc):
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
+    return application
 
 
-# Статика и шаблоны
-app.mount(path="/static", app=StaticFiles(directory=settings.STATIC_DIR), name="static")
-app.state.templates = Jinja2Templates(directory=settings.TEMPLATE_DIR)
-
-# Роуты
-app.include_router(router=main_router)
+app = create_app()
 
 
 if __name__ == "__main__":
@@ -57,5 +90,5 @@ if __name__ == "__main__":
         app="main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=True,
     )

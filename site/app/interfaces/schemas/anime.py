@@ -1,6 +1,13 @@
-from pydantic import BaseModel
+# -*- coding: utf-8 -*-
+
+"""
+Pydantic schemas — API response contracts (presentation layer).
+Maps domain entities to JSON for the OpenAPI / JSON endpoints.
+"""
+
 from datetime import date
-from typing import Optional
+
+from pydantic import BaseModel
 
 
 class AnimeBase(BaseModel):
@@ -18,5 +25,4 @@ class AnimeBase(BaseModel):
 class AnimeResponse(AnimeBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

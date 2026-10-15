@@ -1,8 +1,18 @@
-from app.models.anime import Anime
-from datetime import date
+# -*- coding: utf-8 -*-
 
-# ── Заглушка данных (позже заменим на БД) ──────────────────
-_ANIME_DB: list[Anime] = [
+"""
+In-Memory Anime Repository Adapter.
+
+Infrastructure layer — concrete implementation of the domain port.
+Swappable with SQL / NoSQL / Redis without touching domain or app code.
+"""
+
+from app.domain.entities.anime import Anime
+from app.domain.ports.anime_repository import AnimeRepository
+
+
+# ── Seed data (replace with real DB later) ──────────────────────────
+_ANIME_SEED: list[Anime] = [
     Anime(
         id=1,
         title="Атака Титанов",
@@ -14,7 +24,7 @@ _ANIME_DB: list[Anime] = [
         rating=9.1,
         episodes_count=89,
         is_released=True,
-        status="released"
+        status="released",
     ),
     Anime(2, "Стальной алхимик", "Fullmetal Alchemist: Brotherhood",
           "Братья Элрик стремятся вернуть свои тела после провалившегося алхимического эксперимента, используя власть алхимии.",
@@ -47,22 +57,21 @@ _ANIME_DB: list[Anime] = [
 ]
 
 
-class AnimeService:
-    """Простой сервис — позже заменим на SQL/Redis."""
+class InMemoryAnimeRepository(AnimeRepository):
+    """In-memory adapter — swap with SQLAlchemy / Redis in production."""
 
+    def __init__(self) -> None:
+        self._store: list[Anime] = list(_ANIME_SEED)
+
+    # ------------------------------------------------------------------
     def get_all(self) -> list[Anime]:
-        return list(_ANIME_DB)
+        return list(self._store)
 
     def get_by_id(self, anime_id: int) -> Anime | None:
-        return next((a for a in _ANIME_DB if a.id == anime_id), None)
+        return next((a for a in self._store if a.id == anime_id), None)
 
     def search(self, query: str) -> list[Anime]:
-        q = query.lower()
-        return [a for a in _ANIME_DB
-                if q in a.title.lower() or q in a.title_en.lower()]
+        return [a for a in self._store if a.matches_search(query)]
 
     def by_genre(self, genre: str) -> list[Anime]:
-        return [a for a in _ANIME_DB if genre in a.genres]
-
-
-anime_service = AnimeService()
+        return [a for a in self._store if a.has_genre(genre)]
